@@ -16,11 +16,15 @@
 #
 """Cost and Usage Generator for OpenShift metering reports."""
 
-from .base import BaseGenerator
+from .date import ChronoGenerator
 
-class OCPGenerator(BaseGenerator):
-    """Generator to generate lines compatible with OpenShift metering reports.
-    """
+class OCPGenerator(ChronoGenerator):
+    """Generator to generate lines compatible with OpenShift metering reports."""
+
+    _period_start = 'report_period_start'
+    _period_end = 'report_period_end'
+    _usage_start = 'interval_start'
+    _usage_end = 'interval_end'
 
     def gen_calc(self, **kwargs):
         return "NotImplemented: OCP:Calc"

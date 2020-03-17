@@ -16,7 +16,7 @@
 #
 """Date utilities."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 
@@ -26,22 +26,22 @@ class DateHelper:
 
     def __init__(self, utc=False):
         """Initialize when now is."""
-        self.now = datetime.datetime.now(tz=pytz.UTC)
+        self.now = datetime.now(tz=pytz.UTC)
 
     @property
     def one_day(self):
         """Timedelta of one day."""
-        return datetime.timedelta(days=1)
+        return timedelta(days=1)
 
     @property
     def one_hour(self):
         """Timedelta of one hour."""
-        return datetime.timedelta(minutes=60)
+        return timedelta(minutes=60)
 
     @property
     def this_hour(self):
         """Datetime of top of the current hour."""
-        return self._now.replace(microsecond=0, second=0, minute=0)
+        return self.now.replace(microsecond=0, second=0, minute=0)
 
     @property
     def next_hour(self):
@@ -58,7 +58,7 @@ class DateHelper:
     @property
     def today(self):
         """Datetime of midnight today."""
-        return self._now.replace(microsecond=0, second=0, minute=0, hour=0)
+        return self.now.replace(microsecond=0, second=0, minute=0, hour=0)
 
     @property
     def yesterday(self):
@@ -149,7 +149,7 @@ class DateHelper:
 
         """
         midnight = in_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        n_days = midnight - datetime.timedelta(days=n_days)
+        n_days = midnight - timedelta(days=n_days)
         return n_days
 
     def list_days(self, start_date, end_date):
@@ -165,7 +165,7 @@ class DateHelper:
         end_midnight = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
         start_midnight = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
         days = (end_midnight - start_midnight + self.one_day).days
-        return [start_midnight + datetime.timedelta(i) for i in range(days)]
+        return [start_midnight + timedelta(i) for i in range(days)]
 
     def list_months(self, start_date, end_date):
         """Return a list of months from the start date til the end date.

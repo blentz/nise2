@@ -17,12 +17,13 @@
 """Base Generator."""
 
 import csv
+import random
 import re
 from datetime import datetime
 
 from faker import Faker
 
-from util.log import LOG
+from util import LOG
 from exceptions import NiseError, NiseGeneratorError
 
 
@@ -87,7 +88,6 @@ class BaseGenerator:
         filename = self.config.get("filename")
         LOG.info(f"Generator initialized for file: {filename}")
 
-
     @property
     def header(self):
         """return a CSV header"""
@@ -117,8 +117,11 @@ class BaseGenerator:
                     result = getattr(self, f"gen_{coltype}")(**col)
                 except NiseGeneratorError as exc:
                     LOG.info(exc)
+                    return None  # stop iterating
                 except AttributeError as exc:
-                    LOG.info(f"No method to generate columns of type '{coltype}'. Using default value.")
+                    colname = col.get("name")
+                    LOG.info(f"A problem occurred generating columns of type '{coltype}'. Using default value for column '{colname}'.")
+                    LOG.debug(exc)
                 output.append(result)
             LOG.debug(f"Generated Line: {output}")
             sent = yield output
@@ -145,7 +148,10 @@ class BaseGenerator:
         """Generate string values."""
         colformat = kwargs.get("format")
         if colformat:
-            generated = [self.FAKE.word() for _ in range(0, count_brackets(colformat))]
+            if kwargs.get("seed"):
+                generated = [random.choice(kwargs.get("seed")) for _ in range(0, count_brackets(colformat))]
+            else:
+                generated = [self.FAKE.word() for _ in range(0, count_brackets(colformat))]
             return kwargs.get("format").format(*generated)
         return self._return_default(**kwargs)
 

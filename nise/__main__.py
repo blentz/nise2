@@ -40,7 +40,7 @@ def parse_args():
         metavar="YYYY-MM-DD",
         dest="start_date",
         required=False,
-        default=DateHelper.this_month_start,
+        default=DateHelper().this_month_start,
         type=valid_date,
         help="Date to start generating data",
     )
@@ -49,7 +49,7 @@ def parse_args():
         metavar="YYYY-MM-DD",
         dest="end_date",
         required=False,
-        default=DateHelper.today,
+        default=DateHelper().today,
         type=valid_date,
         help="Date to end generating data. Default is today.",
     )
@@ -131,6 +131,25 @@ def valid_date(date_string):
     return valid
 
 
+# XXX: This interface is a bit clumsy.
+def update_config(config, key, value, update):
+    """Update the default of a parsed template dict, matching search criteria.
+
+    Args:
+        config (list) a list of configuration dictionaries
+        key (str) a search key
+        value (str) a search value
+        update (obj) the new object to update a matching config
+    """
+    updated = config
+    for idx, dikt in enumerate(config):
+        if key in dikt.keys() and value in dikt.values():
+            newdict = dikt
+            newdict["default"] = update
+            updated[idx] = newdict
+    return updated
+
+
 def main():
     """Run data generation program."""
     args = parse_args()
@@ -144,8 +163,8 @@ def main():
             continue
 
         tmpl_args = {
-            "report_month": 1,
-            "report_year": 1,
+            "report_month": args.start_date.month,
+            "report_year": args.start_date.year,
             "clusterid": args.clusterid,
         }
 
@@ -157,14 +176,18 @@ def main():
         generator = None
         header = None
 
-        if args.cmd == 'ocp':
+        if args.cmd == "ocp":
             from generators import OCPGenerator
+
+            ymldict["columns"] = update_config(
+                ymldict.get("columns"), "name", OCPGenerator._period_start, args.start_date
+            )
+            ymldict["columns"] = update_config(ymldict.get("columns"), "name", OCPGenerator._period_end, args.end_date)
             generator = OCPGenerator(ymldict)
             header = generator.header
-
         count = 0
         for line in generator.lines():
-            if count >= 10:
+            if count >= 5000:
                 break
             count += 1
 
